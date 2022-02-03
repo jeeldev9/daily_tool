@@ -143,7 +143,7 @@ class ExpensTile extends StatelessWidget {
                   : null),
           padding:
               EdgeInsets.symmetric(horizontal: 5, vertical: isBorder! ? 8 : 0),
-          width: w * 0.35,
+          width: w * 0.37,
           child: Text("${isHeader! ? "Date" : expenseModel!.date}"),
         ),
       ],

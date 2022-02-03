@@ -1,4 +1,6 @@
+import 'package:daily_tool/src/constant_variables.dart';
 import 'package:daily_tool/src/models/expense_model.dart';
+import 'package:daily_tool/src/widgets/dialog.dart';
 import 'package:daily_tool/src/widgets/expense_tile.dart';
 import 'package:flutter/material.dart';
 
@@ -11,38 +13,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<ExpenseModel> data = [
-    ExpenseModel(
-        no: "1",
-        expense: "Pizza",
-        category: "Food",
-        date: "January 1,2022",
-        amount: 900),
-    ExpenseModel(
-        no: "2",
-        expense: "College Fees",
-        category: "Education",
-        date: "January 4,2022",
-        amount: 20000),
-    ExpenseModel(
-        no: "3",
-        expense: "Breakfast",
-        category: "Food",
-        date: "January 5,2022",
-        amount: 200),
-    ExpenseModel(
-        no: "4",
-        expense: "Netflix",
-        category: "Entertainment",
-        date: "March 3,2022",
-        amount: 600),
-  ];
+
 
   double totalExpense = 0.0;
 
   @override
   void initState() {
-    for (var i in data) {
+    for (var i in expenseDataList) {
       totalExpense += i.amount!;
     }
   }
@@ -69,7 +46,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   Padding(
                     padding: const EdgeInsets.only(right: 10.0),
                     child: ElevatedButton(
-                        onPressed: () {}, child: const Text("Add Entry")),
+                        onPressed: () async{
+                          bool result=await  showDialog(
+                            barrierDismissible: false,
+                              context: context,
+                              builder: (context) => DialogFb1());
+                          if(result){
+                            totalExpense=0.0;
+                            for (var i in expenseDataList) {
+                              totalExpense += i.amount!;
+                            }
+                            setState(() {
+
+                            });
+                          }
+                        },
+                        child: const Text("Add Entry")),
                   ),
                 ],
               ),
@@ -99,17 +91,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (newIndex > oldIndex) {
                         newIndex -= 1;
                       }
-                      var temp = data[oldIndex];
-                      data[oldIndex] = data[newIndex];
-                      data[newIndex] = temp;
-                      data[oldIndex].no = (oldIndex + 1).toString();
-                      data[newIndex].no = (newIndex + 1).toString();
+                      var temp = expenseDataList[oldIndex];
+                      expenseDataList[oldIndex] = expenseDataList[newIndex];
+                      expenseDataList[newIndex] = temp;
+                      expenseDataList[oldIndex].no = (oldIndex + 1).toString();
+                      expenseDataList[newIndex].no = (newIndex + 1).toString();
                     },
-                    itemCount: data.length,
+                    itemCount: expenseDataList.length,
                     itemBuilder: (BuildContext context, int index) {
                       return ExpensTile(
                         key: ValueKey(index),
-                        expenseModel: data[index],
+                        expenseModel: expenseDataList[index],
                         isTopBorder: index == 0 ? true : false,
                       );
                     },
