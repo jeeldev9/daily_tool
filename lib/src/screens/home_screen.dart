@@ -1,8 +1,10 @@
 import 'package:daily_tool/src/constant_variables.dart';
 import 'package:daily_tool/src/models/expense_model.dart';
+import 'package:daily_tool/src/widgets/boxes.dart';
 import 'package:daily_tool/src/widgets/dialog.dart';
 import 'package:daily_tool/src/widgets/expense_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 // ignore: must_be_immutable
 class HomeScreen extends StatefulWidget {
@@ -13,15 +15,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-
   double totalExpense = 0.0;
-
-  @override
-  void initState() {
+  storeList() {
+    expenseDataList = Boxes.getExpenses().values.toList();
+    print(expenseDataList);
     for (var i in expenseDataList) {
       totalExpense += i.amount!;
     }
+  }
+
+  @override
+  void initState() {
+    storeList();
+  }
+
+  @override
+  void dispose() {
+    Hive.box('expenseBox').close();
+    super.dispose();
   }
 
   @override
@@ -43,22 +54,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text("Total Expenses:- $totalExpense"),
+                  ElevatedButton(
+                      onPressed: () async {
+                        // await Boxes().backupHiveBox('expenseBox');
+                      },
+                      child: Text('Backup')),
                   Padding(
                     padding: const EdgeInsets.only(right: 10.0),
                     child: ElevatedButton(
-                        onPressed: () async{
-                          bool result=await  showDialog(
-                            barrierDismissible: false,
+                        onPressed: () async {
+                          bool result = await showDialog(
+                              barrierDismissible: false,
                               context: context,
                               builder: (context) => DialogFb1());
-                          if(result){
-                            totalExpense=0.0;
-                            for (var i in expenseDataList) {
-                              totalExpense += i.amount!;
-                            }
-                            setState(() {
-
-                            });
+                          if (result) {
+                            totalExpense = 0.0;
+                            storeList();
+                            setState(() {});
                           }
                         },
                         child: const Text("Add Entry")),
@@ -72,38 +84,28 @@ class _HomeScreenState extends State<HomeScreen> {
                 scrollDirection: Axis.horizontal,
                 child: SizedBox(
                   width: w * 1.6,
-                  child: ReorderableListView.builder(
+                  child: ListView.builder(
                     physics: const NeverScrollableScrollPhysics(),
-                    header: Column(
-                      children: [
-                        ExpensTile(
-                          isHeader: true,
-                          isAmountTextAlignRight: false,
-                          isBorder: false,
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        )
-                      ],
-                    ),
                     shrinkWrap: true,
-                    onReorder: (oldIndex, newIndex) {
-                      if (newIndex > oldIndex) {
-                        newIndex -= 1;
-                      }
-                      var temp = expenseDataList[oldIndex];
-                      expenseDataList[oldIndex] = expenseDataList[newIndex];
-                      expenseDataList[newIndex] = temp;
-                      expenseDataList[oldIndex].no = (oldIndex + 1).toString();
-                      expenseDataList[newIndex].no = (newIndex + 1).toString();
-                    },
-                    itemCount: expenseDataList.length,
+                    itemCount: expenseDataList.length + 1,
                     itemBuilder: (BuildContext context, int index) {
-                      return ExpensTile(
-                        key: ValueKey(index),
-                        expenseModel: expenseDataList[index],
-                        isTopBorder: index == 0 ? true : false,
-                      );
+                      return index == 0
+                          ? Column(
+                              children: [
+                                ExpensTile(
+                                  isHeader: true,
+                                  isAmountTextAlignRight: false,
+                                  isBorder: false,
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                )
+                              ],
+                            )
+                          : ExpensTile(
+                              expenseModel: expenseDataList[index - 1],
+                              isTopBorder: index == 1 ? true : false,
+                            );
                     },
                   ),
                 ),
